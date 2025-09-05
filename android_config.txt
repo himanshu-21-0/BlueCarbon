@@ -1,0 +1,407 @@
+<!-- android/app/src/main/AndroidManifest.xml -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    
+    <!-- Network security config for HTTP connections in debug -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    
+    <!-- Required for offline data storage -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
+        tools:ignore="ScopedStorage" />
+
+    <application
+        android:name=".MainApplication"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="false"
+        android:theme="@style/AppTheme"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait">
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
+            <!-- Deep linking for carbon credit sharing -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="bluecarbon.nccr.gov.in" />
+            </intent-filter>
+            
+        </activity>
+        
+        <!-- Splash Screen Activity -->
+        <activity
+            android:name=".SplashActivity"
+            android:theme="@style/SplashTheme"
+            android:exported="false" />
+            
+        <!-- File Provider for sharing files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+        
+        <!-- Background service for data sync -->
+        <service android:name=".services.SyncService" 
+                 android:enabled="true"
+                 android:exported="false" />
+                 
+        <!-- Firebase Cloud Messaging -->
+        <service android:name=".services.FCMService"
+                 android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        
+        <!-- Meta-data for vector icons -->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+                   android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
+                   
+    </application>
+
+</manifest>
+
+<!-- ================================================= -->
+<!-- android/app/src/main/res/xml/network_security_config.xml -->
+<!-- ================================================= -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">192.168.1.1</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+
+<!-- ================================================= -->
+<!-- android/app/src/main/res/xml/provider_paths.xml -->
+<!-- ================================================= -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="external_files" path="."/>
+    <external-cache-path name="external_cache" path="."/>
+    <files-path name="files" path="."/>
+    <cache-path name="cache" path="."/>
+</paths>
+
+<!-- ================================================= -->
+<!-- android/app/src/main/res/values/strings.xml -->
+<!-- ================================================= -->
+
+<resources>
+    <string name="app_name">Blue Carbon Registry</string>
+    <string name="app_description">MRV System for Coastal Ecosystem Carbon Credits</string>
+    
+    <!-- Permission descriptions -->
+    <string name="location_permission_title">Location Permission</string>
+    <string name="location_permission_message">Blue Carbon Registry needs location access to capture GPS coordinates for project sites and MRV data collection.</string>
+    
+    <string name="camera_permission_title">Camera Permission</string>
+    <string name="camera_permission_message">Camera access is required to capture field photos for MRV documentation and verification.</string>
+    
+    <string name="storage_permission_title">Storage Permission</string>
+    <string name="storage_permission_message">Storage access is needed to save project data, photos, and sync information locally.</string>
+    
+    <!-- Error messages -->
+    <string name="network_error">Network connection error. Please check your internet connection.</string>
+    <string name="location_error">Unable to get current location. Please enable GPS and try again.</string>
+    <string name="camera_error">Camera not available. Please check camera permissions.</string>
+    <string name="file_error">File operation failed. Please check storage permissions.</string>
+    
+    <!-- Success messages -->
+    <string name="project_registered">Project registered successfully!</string>
+    <string name="mrv_submitted">MRV data submitted successfully!</string>
+    <string name="data_synced">Data synchronized with server.</string>
+    
+    <!-- Navigation labels -->
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_register">Register</string>
+    <string name="tab_mrv">MRV Data</string>
+    <string name="tab_credits">Credits</string>
+    <string name="tab_sync">Sync</string>
+    
+    <!-- Project types -->
+    <string name="ecosystem_mangrove">Mangrove</string>
+    <string name="ecosystem_seagrass">Seagrass</string>
+    <string name="ecosystem_saltmarsh">Salt Marsh</string>
+    <string name="ecosystem_wetland">Coastal Wetland</string>
+    
+    <!-- Methodologies -->
+    <string name="methodology_vm0033">VM0033 - Tidal Wetland</string>
+    <string name="methodology_ar_acm0003">AR-ACM0003 - Afforestation</string>
+    <string name="methodology_ams_iii_bf">AMS-III.BF - Restoration</string>
+    
+</resources>
+
+<!-- ================================================= -->
+<!-- android/app/src/main/res/values/styles.xml -->
+<!-- ================================================= -->
+
+<resources>
+    <!-- Base application theme -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#3b82f6</item>
+        <item name="colorPrimaryDark">#1e40af</item>
+        <item name="colorAccent">#22c55e</item>
+        <item name="android:statusBarColor">#1e293b</item>
+        <item name="android:navigationBarColor">#ffffff</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/background_color</item>
+    </style>
+    
+    <!-- Splash screen theme -->
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    
+</resources>
+
+<!-- ================================================= -->
+<!-- android/app/src/main/res/values/colors.xml -->
+<!-- ================================================= -->
+
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#3b82f6</color>
+    <color name="primary_dark">#1e40af</color>
+    <color name="primary_light">#dbeafe</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#22c55e</color>
+    <color name="secondary_dark">#16a34a</color>
+    <color name="secondary_light">#dcfce7</color>
+    
+    <!-- Background Colors -->
+    <color name="background_color">#f8fafc</color>
+    <color name="surface_color">#ffffff</color>
+    <color name="card_background">#ffffff</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#1e293b</color>
+    <color name="text_secondary">#64748b</color>
+    <color name="text_disabled">#94a3b8</color>
+    
+    <!-- Status Colors -->
+    <color name="success">#22c55e</color>
+    <color name="warning">#f59e0b</color>
+    <color name="error">#ef4444</color>
+    <color name="info">#3b82f6</color>
+    
+    <!-- Border Colors -->
+    <color name="border_light">#e2e8f0</color>
+    <color name="border_medium">#d1d5db</color>
+    <color name="border_dark">#6b7280</color>
+    
+    <!-- Ecosystem Colors -->
+    <color name="mangrove_color">#059669</color>
+    <color name="seagrass_color">#0ea5e9</color>
+    <color name="saltmarsh_color">#8b5cf6</color>
+    <color name="wetland_color">#f59e0b</color>
+    
+</resources>
+
+<!-- ================================================= -->
+<!-- android/app/build.gradle -->
+<!-- ================================================= -->
+
+apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
+
+react {
+    entryFile = "index.js"
+}
+
+def enableSeparateBuildPerCPUArchitecture = false
+def enableProguardInReleaseBuilds = false
+def jscFlavor = 'org.webkit:android-jsc:+'
+def enableHermes = project.ext.react.get("enableHermes", true);
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    
+    namespace "com.bluecarbon.registry"
+    
+    defaultConfig {
+        applicationId "com.bluecarbon.registry"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        
+        multiDexEnabled true
+        
+        // Add vector drawable support
+        vectorDrawables.useSupportLibrary = true
+        
+        // Proguard optimization
+        proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        
+        // Build config fields
+        buildConfigField "String", "API_BASE_URL", '"https://api.bluecarbon.nccr.gov.in"'
+        buildConfigField "String", "BLOCKCHAIN_NETWORK", '"polygon-mumbai"'
+        buildConfigField "boolean", "ENABLE_LOGGING", "true"
+        
+        // Res configs for app bundle optimization
+        resConfigs "en", "hi", "ta", "te", "ml", "kn", "gu", "mr", "bn"
+        
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+    }
+    
+    splits {
+        abi {
+            reset()
+            enable enableSeparateBuildPerCPUArchitecture
+            universalApk false
+            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+        }
+    }
+    
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            if (project.hasProperty('BLUECARBON_UPLOAD_STORE_FILE')) {
+                storeFile file(BLUECARBON_UPLOAD_STORE_FILE)
+                storePassword BLUECARBON_UPLOAD_STORE_PASSWORD
+                keyAlias BLUECARBON_UPLOAD_KEY_ALIAS
+                keyPassword BLUECARBON_UPLOAD_KEY_PASSWORD
+            }
+        }
+    }
+    
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            buildConfigField "String", "ENVIRONMENT", '"development"'
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources true
+            buildConfigField "String", "ENVIRONMENT", '"production"'
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    
+    packagingOptions {
+        pickFirst "**/libc++_shared.so"
+        pickFirst "**/libjsc.so"
+        pickFirst "**/libfbjni.so"
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    
+    //noinspection GradleDynamicVersion
+    implementation "com.facebook.react:react-native:+"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation 'androidx.multidex:multidex:2.0.1'
+    
+    // Core AndroidX libraries
+    implementation 'androidx.core:core:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // Material Design
+    implementation 'com.google.android.material:material:1.6.1'
+    
+    // Biometric authentication
+    implementation 'androidx.biometric:biometric:1.1.0'
+    
+    // Camera and Image processing
+    implementation 'androidx.camera:camera-camera2:1.1.0'
+    implementation 'androidx.camera:camera-lifecycle:1.1.0'
+    implementation 'androidx.camera:camera-view:1.1.0'
+    
+    // Location services
+    implementation 'com.google.android.gms:play-services-location:20.0.0'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    
+    // Networking
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    
+    // QR Code scanning
+    implementation 'com.google.mlkit:barcode-scanning:17.0.2'
+    
+    // PDF generation
+    implementation 'com.itextpdf:itext7-core:7.2.3'
+    
+    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.fbjni'
+    }
+    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.fbjni'
+    }
+    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.fbjni'
+    }
+    
+    if (enableHermes) {
+        def hermesPath = "../../node_modules/hermes-engine/android/";
+        debugImplementation files(hermesPath + "hermes-debug.aar")
+        releaseImplementation files(hermesPath + "hermes-release.aar")
+    } else {
+        implementation jscFlavor
+    }
+}
+    
